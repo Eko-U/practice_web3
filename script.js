@@ -17,50 +17,40 @@ const questions = [
 
 const container = document.querySelector(".container");
 const questionContainer = document.querySelector(".question-container");
-const questionAsnwer = document.querySelector(".question-answer");
+const questionAnswers = document.querySelector(".question-answers");
 
-let currentQuestion = 0;
+let currentQuestionIndex = 0;
 let score = 0;
-let timer;
-let timePerQuestion = 30;
-let cur_question = questions[currentQuestion];
 
 const submit = document.querySelector(".btn-submit");
 
-submit.addEventListener("click", (e) => {
-  e.preventDefault();
-  currentQuestion++;
-  cur_question = questions[currentQuestion];
-});
+async function startQuiz(currentQuestionIndex) {
+  const res = await fetch("http://localhost:3300/questions");
+  const data = await res.json();
 
-console.log(cur_question);
+  const question = data[currentQuestionIndex];
 
-const questions = [
-  {
-    question: "What is the capital of France?",
-    answers: [
-      { text: "Paris", correct: true },
-      { text: "London", correct: false },
-      { text: "Berlin", correct: false },
-      { text: "Madrid", correct: false },
-    ],
-  },
-  {
-    question: "Which planet is known as the Red Planet?",
-    answers: [
-      { text: "Earth", correct: false },
-      { text: "Mars", correct: true },
-      { text: "Jupiter", correct: false },
-      { text: "Venus", correct: false },
-    ],
-  },
-  {
-    question: "Who wrote 'Romeo and Juliet'?",
-    answers: [
-      { text: "Shakespeare", correct: true },
-      { text: "Tolstoy", correct: false },
-      { text: "Hemingway", correct: false },
-      { text: "Austen", correct: false },
-    ],
-  },
-]
+  questionContainer.innerHTML = question.question;
+
+  question.options.map((option, i) => {
+    const li = document.createElement("li");
+    li.textContent = option;
+    li.classList.add("question-result");
+    li.setAttribute("answerindex", i);
+
+    questionAnswers.insertAdjacentElement("beforeend", li);
+  });
+
+  document.querySelectorAll(".question-result").forEach((element) => {
+    element.addEventListener("click", function (e) {
+      const index = e.target.getAttribute("answerindex");
+      if (+index === question.correctOption) {
+        score = score + 1;
+        currentQuestionIndex = currentQuestionIndex + 1;
+        startQuiz(currentQuestionIndex);
+      }
+    });
+  });
+}
+
+startQuiz(currentQuestionIndex);
